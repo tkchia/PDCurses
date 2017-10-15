@@ -10,7 +10,9 @@ Building
 - Choose the appropriate makefile for your compiler:
 
         bccdos.mak   - Borland C++ 3.0+
-        gccdos.mak   - DJGPP V2
+        gccdos16.mak - Lambertsen et al.'s ia16-elf-gcc (16-bit, cross-compile
+                       from Linux)
+        gccdosdj.mak - DJGPP V2
         mscdos.mak   - Microsoft C
         wccdos16.mak - Open Watcom 1.8+ (16-bit)
         wccdos4g.mak - Open Watcom 1.8+ (32-bit)

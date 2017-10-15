@@ -118,4 +118,26 @@ void PDC_dpmi_int(int vector, pdc_dpmi_regs *rmregs)
     intr(0x31, &regs);
 }
 
+#elif defined(GCC_IA16)
+
+void int86(int intno, union REGS *inregs, union REGS *outregs)
+{
+    unsigned long vect = getdosmemdword((unsigned)4 * (unsigned char)intno);
+    union REGS inr = *inregs, outr;
+    __asm __volatile("pushw %%bp; "
+                     "pushfw; "
+                     "lcallw *%7; "
+                     "popw %%bp; "
+                     "pushfw; "
+                     "popw %6"
+        : "=a" (outr.x.ax), "=b" (outr.x.bx), "=c" (outr.x.cx),
+          "=d" (outr.x.dx), "=S" (outr.x.si), "=D" (outr.x.di),
+          "=m" (outr.x.flags)
+        : "m" (vect), "0" (inr.x.ax), "1" (inr.x.bx), "2" (inr.x.cx),
+          "3" (inr.x.dx), "4" (inr.x.si), "5" (inr.x.di)
+        : "cc", "memory");
+    outr.x.cflag = outr.x.flags & 1;
+    *outregs = outr;
+}
+
 #endif
