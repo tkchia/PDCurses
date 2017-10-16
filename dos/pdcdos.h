@@ -83,7 +83,6 @@ extern unsigned pdc_video_ofs;
 # else
 #  define _FAR_POINTER(s,o) (0xe0000000 + (((int)(s)) << 4) + ((int)(o)))
 # endif
-# define _FP_SEGMENT(p)     (unsigned short)((((long)p) >> 4) & 0xffff)
 #else
 # ifdef __TURBOC__
 #  define _FAR_POINTER(s,o) MK_FP(s,o)
@@ -93,11 +92,13 @@ extern unsigned pdc_video_ofs;
 #  else
 #   define _FAR_POINTER(s,o) ((unsigned long)(s) << 16 | \
                               (unsigned long)(unsigned long)(o))
+#   define _FP_SEGMENT(p)    ((unsigned short) \
+                              ((unsigned long)(void PDC_FAR *)(p) >> 16))
+#   define _FP_OFFSET(p)     ((unsigned short)(unsigned long) \
+                              (void PDC_FAR *)(p))
 #  endif
 # endif
-# define _FP_SEGMENT(p)     (unsigned short)(((unsigned long)p) >> 4)
 #endif
-#define _FP_OFFSET(p)       ((unsigned short)p & 0x000f)
 
 #ifdef __DJGPP__
 # include <sys/movedata.h>
@@ -109,6 +110,8 @@ void setdosmemword(int offs, unsigned short w);
 #else
 # if GCC_IA16
 #  define PDC_FAR __far
+void dosmemget(unsigned long, size_t, void *);
+void dosmemput(const void *, size_t, unsigned long);
 # elif SMALL || MEDIUM || MSC
 #  define PDC_FAR far
 # else

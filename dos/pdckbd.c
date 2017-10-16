@@ -103,12 +103,14 @@ static unsigned char keyboard_function = 0xff, shift_function = 0xff,
 
 static const unsigned short button_map[3] = {0, 2, 1};
 
+#if !GCC_IA16
 unsigned long PDC_get_input_fd(void)
 {
     PDC_LOG(("PDC_get_input_fd() - called\n"));
 
     return (unsigned long)fileno(stdin);
 }
+#endif
 
 void PDC_set_keyboard_binary(bool on)
 {

@@ -54,7 +54,7 @@ void PDC_transform_line(int lineno, int x, int len, const chtype *srcp)
 
     if (pdc_direct_video)
     {
-#if SMALL || MEDIUM
+#if (SMALL || MEDIUM) && !GCC_IA16
 # ifndef __PACIFIC__
         struct SREGS segregs;
 # endif
@@ -85,7 +85,7 @@ void PDC_transform_line(int lineno, int x, int len, const chtype *srcp)
             temp_line[j].text = ch & 0xff;
         }
 
-#ifdef __DJGPP__
+#if defined __DJGPP__ || defined GCC_IA16
         dosmemput(temp_line, len * 2,
                   (unsigned long)_FAR_POINTER(pdc_video_seg,
                   pdc_video_ofs + (lineno * curscr->_maxx + x) * 2));

@@ -286,7 +286,7 @@ static int _query_adapter_type(void)
 
     /* thanks to paganini@ax.apc.org for the GO32 fix */
 
-#if !defined(__DJGPP__) && !defined(__WATCOMC__)
+#if !defined(__DJGPP__) && !defined(__WATCOMC__) && !defined(GCC_IA16)
     struct SREGS segs;
 #endif
     short video_base = getdosmemword(0x463);
@@ -426,19 +426,26 @@ static int _query_adapter_type(void)
        thanks to paganini@ax.apc.org for the GO32 fix */
 
 #ifndef __WATCOMC__
+# ifndef GCC_IA16
     regs.h.ah = 0xfe;
     regs.h.al = 0;
     regs.x.di = pdc_video_ofs;
-# ifdef __DJGPP__
+#  ifdef __DJGPP__
     regs.x.es = pdc_video_seg;
     __dpmi_int(0x10, &regs);
     pdc_video_seg = regs.x.es;
-# else
+#  else
     segs.es   = pdc_video_seg;
     int86x(0x10, &regs, &regs, &segs);
     pdc_video_seg = segs.es;
-# endif
+#  endif
     pdc_video_ofs = regs.x.di;
+# else
+    __asm __volatile("int $0x10"
+        : "=e" (pdc_video_seg), "=D" (pdc_video_ofs)
+        : "a" (0xfe00u), "0" (pdc_video_seg), "1" (pdc_video_ofs)
+        : "bx", "cx", "dx", "cc", "memory");
+# endif
 #endif
     if (!pdc_adapter)
         pdc_adapter = retval;
@@ -451,7 +458,7 @@ static int _query_adapter_type(void)
 
 void PDC_scr_close(void)
 {
-#if SMALL || MEDIUM
+#if (SMALL || MEDIUM) && !GCC_IA16
 # ifndef __PACIFIC__
     struct SREGS segregs;
 # endif
@@ -461,7 +468,7 @@ void PDC_scr_close(void)
 
     if (getenv("PDC_RESTORE_SCREEN") && saved_screen)
     {
-#ifdef __DJGPP__
+#if defined __DJGPP__ || defined GCC_IA16
         dosmemput(saved_screen, saved_lines * saved_cols * 2,
             (unsigned long)_FAR_POINTER(pdc_video_seg,
             pdc_video_ofs));
@@ -509,7 +516,7 @@ void PDC_scr_free(void)
 
 int PDC_scr_open(int argc, char **argv)
 {
-#if SMALL || MEDIUM
+#if (SMALL || MEDIUM) && !GCC_IA16
 # ifndef __PACIFIC__
     struct SREGS segregs;
 # endif
@@ -564,7 +571,7 @@ int PDC_scr_open(int argc, char **argv)
             SP->_preserve = FALSE;
             return OK;
         }
-#ifdef __DJGPP__
+#if defined __DJGPP__ || defined GCC_IA16
         dosmemget((unsigned long)_FAR_POINTER(pdc_video_seg, pdc_video_ofs),
                   saved_lines * saved_cols * 2, saved_screen);
 #else

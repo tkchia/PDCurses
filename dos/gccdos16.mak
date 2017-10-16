@@ -28,7 +28,7 @@ ifeq ($(DEBUG),Y)
 	LDFLAGS = -g
 else
 	CFLAGS  = -O2 -Wall
-	LDFLAGS =
+	LDFLAGS = -Wl,-M
 endif
 
 ifeq ($(MODEL),t)
@@ -80,7 +80,7 @@ $(PDCOBJS) : %.o: $(osdir)/%.c
 
 firework.exe newdemo.exe rain.exe testcurs.exe worm.exe xmas.exe \
 ptest.exe: %.exe: $(demodir)/%.c
-	$(CC) $(CFLAGS) -o$@ $< $(LIBCURSES)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o$@ $< $(LIBCURSES)
 
 tuidemo.exe: tuidemo.o tui.o
 	$(LINK) $(LDFLAGS) -o$@ tuidemo.o tui.o $(LIBCURSES)
