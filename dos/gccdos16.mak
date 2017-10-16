@@ -27,8 +27,10 @@ ifeq ($(DEBUG),Y)
 	CFLAGS  = -g -Wall -DPDCDEBUG
 	LDFLAGS = -g
 else
-	CFLAGS  = -O2 -Wall
-	LDFLAGS = -Wl,-M
+	CFLAGS  = -Os -Wall
+	# also include `-Os' as a flag during linking, to select the size-
+	# -optimized newlib multilib
+	LDFLAGS = -Os -Wl,-M
 endif
 
 ifeq ($(MODEL),t)

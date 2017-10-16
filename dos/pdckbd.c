@@ -124,6 +124,32 @@ void PDC_set_keyboard_binary(bool on)
 
 /* check if a key or mouse event is waiting */
 
+/*
+ * As of writing `ia16-elf-gcc -Os' crashes on this function:
+ *
+ *	../dos/pdckbd.c: In function ‘PDC_check_key’:
+ *	../dos/pdckbd.c:228:1: internal compiler error: Segmentation fault
+ *	 }
+ *	 ^
+ *	0x95d29f crash_signal
+ *		../../gcc-ia16/gcc/toplev.c:333
+ *	0xc7f4e9 try_combine
+ *		../../gcc-ia16/gcc/combine.c:4319
+ *	0xc834d3 combine_instructions
+ *		../../gcc-ia16/gcc/combine.c:1267
+ *	0xc834d3 rest_of_handle_combine
+ *		../../gcc-ia16/gcc/combine.c:14368
+ *	0xc834d3 execute
+ *		../../gcc-ia16/gcc/combine.c:14411
+ *
+ * Until, well, someone fixes this bug, work around it by using a different
+ * optimization level...
+ *
+ *	-- tkchia 20171016
+ */
+#ifdef GCC_IA16
+__attribute__((optimize("O2")))
+#endif
 bool PDC_check_key(void)
 {
     PDCREGS regs;
