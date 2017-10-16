@@ -148,14 +148,17 @@ static int _mouse_key(WINDOW *win)
 
     /* Check for click in slk area */
 
-    i = PDC_mouse_in_slk(pdc_mouse_status.y, pdc_mouse_status.x);
-
-    if (i)
+    if (PDC_mouse_in_slk)
     {
-        if (pdc_mouse_status.button[0] & (BUTTON_PRESSED|BUTTON_CLICKED))
-            key = KEY_F(i);
-        else
-            key = -1;
+        i = PDC_mouse_in_slk(pdc_mouse_status.y, pdc_mouse_status.x);
+
+        if (i)
+        {
+            if (pdc_mouse_status.button[0] & (BUTTON_PRESSED|BUTTON_CLICKED))
+                key = KEY_F(i);
+            else
+                key = -1;
+        }
     }
 
     return key;

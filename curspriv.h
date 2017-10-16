@@ -94,9 +94,15 @@ const char *PDC_sysname(void);
 void    PDC_init_atrtab(void);
 WINDOW *PDC_makelines(WINDOW *);
 WINDOW *PDC_makenew(int, int, int, int);
+#if !(defined __GNUC__ && defined __ia16__)
 int     PDC_mouse_in_slk(int, int);
 void    PDC_slk_free(void);
 void    PDC_slk_initialize(void);
+#else
+int     PDC_mouse_in_slk(int, int) __attribute__((weak));
+void    PDC_slk_free(void) __attribute__((weak));
+void    PDC_slk_initialize(void) __attribute__((weak));
+#endif
 void    PDC_sync(WINDOW *);
 
 #ifdef PDC_WIDE

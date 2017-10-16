@@ -10,15 +10,16 @@ Building
 - Choose the appropriate makefile for your compiler:
 
         bccdos.mak   - Borland C++ 3.0+
-        gccdos16.mak - Lambertsen et al.'s ia16-elf-gcc (16-bit, cross-compile
-                       from Linux)
+        gccdos16.mak - Lambertsen et al.'s ia16-elf-gcc (16-bit 80186
+                       compatible, cross-compile from Linux, experimental)
         gccdosdj.mak - DJGPP V2
         mscdos.mak   - Microsoft C
         wccdos16.mak - Open Watcom 1.8+ (16-bit)
         wccdos4g.mak - Open Watcom 1.8+ (32-bit)
 
 - For 16-bit compilers, you can change the memory MODEL in the makefile.
-  (Large model is the default, and recommended.)
+  (Large model is the default, and recommended.)  (The exception is
+  ia16-elf-gcc, which only supports tiny and small models.)
 
 - Optionally, you can build in a different directory than the platform
   directory by setting PDCURSES_SRCDIR to point to the directory where

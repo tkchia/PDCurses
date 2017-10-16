@@ -1483,7 +1483,11 @@ PDCEX int     slk_clear(void);
 PDCEX int     slk_color(short);
 PDCEX int     slk_init(int);
 PDCEX char   *slk_label(int);
+#if !(defined __GNUC__ && defined __ia16__)
 PDCEX int     slk_noutrefresh(void);
+#else
+PDCEX int     slk_noutrefresh(void) __attribute__((weak));
+#endif
 PDCEX int     slk_refresh(void);
 PDCEX int     slk_restore(void);
 PDCEX int     slk_set(int, const char *, int);

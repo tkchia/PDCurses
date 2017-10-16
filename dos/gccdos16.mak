@@ -24,13 +24,13 @@ PDCURSES_DOS_H	= $(osdir)/pdcdos.h
 CC		= ia16-elf-gcc
 
 ifeq ($(DEBUG),Y)
-	CFLAGS  = -g -Wall -DPDCDEBUG
-	LDFLAGS = -g
+	CFLAGS  = -g -Wall -DPDCDEBUG -march=any_186
+	LDFLAGS = -g -march=any_186
 else
-	CFLAGS  = -Os -Wall
-	# also include `-Os' as a flag during linking, to select the size-
-	# -optimized newlib multilib
-	LDFLAGS = -Os -Wl,-M
+	CFLAGS  = -Os -Wall -march=any_186
+	# also include `-Os' and `-march=any_186' as flags during linking,
+	# to select the 80186- and size-optimized newlib multilib
+	LDFLAGS = -Os -march=any_186 -Wl,-M
 endif
 
 ifeq ($(MODEL),t)
