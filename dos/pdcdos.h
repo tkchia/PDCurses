@@ -109,7 +109,7 @@ void setdosmembyte(int offs, unsigned char b);
 void setdosmemword(int offs, unsigned short w);
 #else
 # if GCC_IA16
-#  define PDC_FAR __far
+#  define PDC_FAR volatile __far
 void dosmemget(unsigned long, size_t, void *);
 void dosmemput(const void *, size_t, unsigned long);
 # elif SMALL || MEDIUM || MSC

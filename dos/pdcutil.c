@@ -22,7 +22,7 @@ void PDC_beep(void)
    tick count with a carry over from the lower half to the upper half ---
    and our read count will be bogus.  */
 #elif defined __TURBOC__
-unsigned long irq0_ticks(void)
+static unsigned long irq0_ticks(void)
 {
     unsigned long t;
     disable();
@@ -31,12 +31,22 @@ unsigned long irq0_ticks(void)
     return t;
 }
 #elif defined __WATCOMC__
-unsigned long irq0_ticks(void)
+static unsigned long irq0_ticks(void)
 {
     unsigned long t;
     _disable();
     t = getdosmemdword(0x46c);
     _enable();
+    return t;
+}
+#elif defined __GNUC__
+#
+static unsigned long irq0_ticks(void)
+{
+    unsigned long t;
+    __asm __volatile("cli");
+    t = getdosmemdword(0x46c);
+    __asm __volatile("sti");
     return t;
 }
 #else
@@ -45,11 +55,19 @@ unsigned long irq0_ticks(void)
 
 static void do_idle(void)
 {
+#ifndef __GNUC__
     PDCREGS regs;
 
     regs.W.ax = 0x1680;
     PDCINT(0x2f, regs);
     PDCINT(0x28, regs);
+#else
+    unsigned ax;
+
+    __asm __volatile("int $0x2f" : "=a" (ax) : "0" (0x1680)
+        : "bx", "cx", "dx", "cc", "memory");
+    __asm __volatile("int $0x28" : : : "cc", "memory");
+#endif
 }
 
 void PDC_napms(int ms)
