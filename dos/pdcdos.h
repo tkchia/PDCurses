@@ -21,6 +21,14 @@
 # define __SMALL__
 #endif
 
+#if defined(__GNUC__) && defined(__ia16__)
+# define GCC_IA16 1
+# if !defined(__TINY__) && !defined(__SMALL__) && !defined(__MEDIUM__) && \
+     !defined(__COMPACT__) && !defined(__LARGE__) && !defined(__HUGE__)
+#   define __SMALL__       /* erm... */
+# endif
+#endif
+
 #if defined(__HIGHC__) || MSC
 # include <bios.h>
 #endif
@@ -56,7 +64,9 @@
 # define HUGE 1
 #endif
 
-#include <dos.h>
+#ifndef GCC_IA16
+# include <dos.h>
+#endif
 
 extern unsigned char *pdc_atrtab;
 extern int pdc_adapter;
@@ -73,7 +83,6 @@ extern unsigned pdc_video_ofs;
 # else
 #  define _FAR_POINTER(s,o) (0xe0000000 + (((int)(s)) << 4) + ((int)(o)))
 # endif
-# define _FP_SEGMENT(p)     (unsigned short)((((long)p) >> 4) & 0xffff)
 #else
 # ifdef __TURBOC__
 #  define _FAR_POINTER(s,o) MK_FP(s,o)
@@ -81,12 +90,15 @@ extern unsigned pdc_video_ofs;
 #  if defined(__WATCOMC__) && defined(__FLAT__)
 #   define _FAR_POINTER(s,o) ((((int)(s)) << 4) + ((int)(o)))
 #  else
-#   define _FAR_POINTER(s,o) (((long)s << 16) | (long)o)
+#   define _FAR_POINTER(s,o) ((unsigned long)(s) << 16 | \
+                              (unsigned long)(unsigned long)(o))
+#   define _FP_SEGMENT(p)    ((unsigned short) \
+                              ((unsigned long)(void PDC_FAR *)(p) >> 16))
+#   define _FP_OFFSET(p)     ((unsigned short)(unsigned long) \
+                              (void PDC_FAR *)(p))
 #  endif
 # endif
-# define _FP_SEGMENT(p)     (unsigned short)(((long)p) >> 4)
 #endif
-#define _FP_OFFSET(p)       ((unsigned short)p & 0x000f)
 
 #ifdef __DJGPP__
 # include <sys/movedata.h>
@@ -96,7 +108,11 @@ unsigned long getdosmemdword(int offs);
 void setdosmembyte(int offs, unsigned char b);
 void setdosmemword(int offs, unsigned short w);
 #else
-# if SMALL || MEDIUM || MSC
+# if GCC_IA16
+#  define PDC_FAR volatile __far
+void dosmemget(unsigned long, size_t, void *);
+void dosmemput(const void *, size_t, unsigned long);
+# elif SMALL || MEDIUM || MSC
 #  define PDC_FAR far
 # else
 #  define PDC_FAR
@@ -138,6 +154,19 @@ typedef union
 } pdc_dpmi_regs;
 
 void PDC_dpmi_int(int, pdc_dpmi_regs *);
+
+#elif defined GCC_IA16
+
+/* For now, define a `union REGS' type and an int86(...) routine compatible
+   with those in Borland's Turbo C 2.01, except that int86(...) supposedly
+   returns an undocumented `int' in Turbo C and I leave that out */
+union REGS
+{
+    struct WORDREGS { unsigned ax, bx, cx, dx, si, di, cflag, flags; } x;
+    struct BYTEREGS { unsigned char al, ah, bl, bh, cl, ch, dl, dh; } h;
+};
+
+void int86(int, union REGS *, union REGS *);
 
 #endif
 

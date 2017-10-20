@@ -178,7 +178,8 @@ WINDOW *Xinitscr(int argc, char *argv[])
     wattrset(pdc_lastscr, (chtype)(-1));
     werase(pdc_lastscr);
 
-    PDC_slk_initialize();
+    if (PDC_slk_initialize)
+        PDC_slk_initialize();
     LINES -= SP->slklines;
 
     /* We have to sort out ripped off lines here, and reduce the height
@@ -286,7 +287,8 @@ void delscreen(SCREEN *sp)
     if (sp != SP)
         return;
 
-    PDC_slk_free();     /* free the soft label keys, if needed */
+    if (PDC_slk_free)
+        PDC_slk_free(); /* free the soft label keys, if needed */
 
     delwin(stdscr);
     delwin(curscr);
@@ -324,7 +326,7 @@ int resize_term(int nlines, int ncols)
     werase(pdc_lastscr);
     curscr->_clear = TRUE;
 
-    if (SP->slk_winptr)
+    if (SP->slk_winptr && PDC_slk_initialize && slk_noutrefresh)
     {
         if (wresize(SP->slk_winptr, SP->slklines, COLS) == ERR)
             return ERR;

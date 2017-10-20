@@ -1,4 +1,4 @@
-/* Public Domain Curses */
+
 
 #include <curspriv.h>
 
@@ -147,7 +147,9 @@ int slk_init(int fmt)
         break;
     }
 
+#if !(defined __GNUC__ && defined __ia16__)  /* only then link debug code */
     traceon( );
+#endif
     n_labels = 0;
     for( i = abs( label_fmt); i; i /= 16)
        n_labels += i % 16;
@@ -158,7 +160,9 @@ int slk_init(int fmt)
         free( slk);
     slk = calloc(n_labels, sizeof(struct SLK));
     PDC_LOG(( "New slk: %p; SP = %p\n", slk, SP));
+#if !(defined __GNUC__ && defined __ia16__)
     traceoff( );
+#endif
 
     if (!slk)
         n_labels = 0;
