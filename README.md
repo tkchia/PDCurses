@@ -6,7 +6,8 @@ curses for multiple platforms. Relative to the 'official',  but
 mostly inactive,  PDCurses project,  this has a variety of
 improvements,  adding a Windows GUI "flavor" of Curses and
 expanding the capabilities of the other flavors (SDL,  X11,
-Win32 console,  OS/2,  and DOS).  Some details and screen shots at
+Win32 console,  OS/2,  and DOS).  Some details and screen shots
+(from Bill Gray's web site) at
 
 http://www.projectpluto.com/win32a.htm
 
@@ -60,4 +61,6 @@ William McBrine <wmcbrine@gmail.com>  ("official" PDCurses)
 
 Bill Gray
 p&#x202e;&ocirc;&#xe7;.&ouml;tulp&#x165;c&eacute;j&ocirc;&#x159;p&#x40;ot&uacute;l&#x202c;m
-(this fork)
+(Bill Gray's fork)
+
+TK Chia (this fork)
