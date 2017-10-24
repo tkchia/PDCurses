@@ -22,7 +22,7 @@ osdir		= $(PDCURSES_SRCDIR)/dos
 PDCURSES_DOS_H	= $(osdir)/pdcdos.h
 
 CC		= ia16-elf-gcc
-CHTYPE		= -DCHTYPE_32
+CHTYPE		= -DCHTYPE_16
 
 ifeq ($(DEBUG),Y)
 	CFLAGS  = -g -Wall $(CHTYPE) -DPDCDEBUG -march=any_186
