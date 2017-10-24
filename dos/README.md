@@ -14,12 +14,15 @@ Building
                        compatible, cross-compile from Linux, experimental)
         gccdosdj.mak - DJGPP V2
         mscdos.mak   - Microsoft C
-        wccdos16.mak - Open Watcom 1.8+ (16-bit)
-        wccdos4g.mak - Open Watcom 1.8+ (32-bit)
+        wccdos.mak   - Open Watcom 1.8+ (16-bit or 32-bit)
 
 - For 16-bit compilers, you can change the memory MODEL in the makefile.
   (Large model is the default, and recommended.)  (The exception is
   ia16-elf-gcc, which only supports tiny and small models.)
+
+  (For Open Watcom, pass MODEL=f (flat model) to "wmake" in order to use
+  the 32-bit compiler. Selcting a 16-bit MODEL (e.g. MODEL=l) will
+  invoke the 16-bit compiler.)
 
 - Optionally, you can build in a different directory than the platform
   directory by setting PDCURSES_SRCDIR to point to the directory where
