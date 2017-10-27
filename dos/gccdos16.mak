@@ -25,13 +25,13 @@ CC		= ia16-elf-gcc
 CHTYPE		= -DCHTYPE_16
 
 ifeq ($(DEBUG),Y)
-	CFLAGS  = -g -Wall $(CHTYPE) -DPDCDEBUG -march=any_186
-	LDFLAGS = -g -march=any_186
+	CFLAGS  = -g -Wall $(CHTYPE) -DPDCDEBUG -march=any
+	LDFLAGS = -g -march=any
 else
-	CFLAGS  = -Os -Wall $(CHTYPE) -march=any_186
-	# also include `-Os' and `-march=any_186' as flags during linking,
-	# to select the 80186- and size-optimized newlib multilib
-	LDFLAGS = -Os -march=any_186 -Wl,-M
+	CFLAGS  = -Os -Wall $(CHTYPE) -march=any
+	# also include `-Os' and `-march=any' as flags during linking,
+	# to select the size-optimized newlib multilib
+	LDFLAGS = -Os -march=any -Wl,-M
 endif
 
 ifeq ($(MODEL),t)
