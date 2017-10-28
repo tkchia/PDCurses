@@ -232,21 +232,20 @@ void PDC_dpmi_int(int vector, pdc_dpmi_regs *rmregs)
 void int86(int intno, union REGS *inregs, union REGS *outregs)
 {
     unsigned long vect = getdosmemdword((unsigned)4 * (unsigned char)intno);
-    union REGS inr = *inregs, outr;
+    union REGS regs = *inregs;
     __asm __volatile("pushw %%bp; "
                      "pushfw; "
                      "lcallw *%7; "
                      "popw %%bp; "
                      "pushfw; "
                      "popw %6"
-        : "=a" (outr.x.ax), "=b" (outr.x.bx), "=c" (outr.x.cx),
-          "=d" (outr.x.dx), "=S" (outr.x.si), "=D" (outr.x.di),
-          "=m" (outr.x.flags)
-        : "m" (vect), "0" (inr.x.ax), "1" (inr.x.bx), "2" (inr.x.cx),
-          "3" (inr.x.dx), "4" (inr.x.si), "5" (inr.x.di)
+        : "+a" (regs.x.ax), "+b" (regs.x.bx), "+c" (regs.x.cx),
+          "+d" (regs.x.dx), "+S" (regs.x.si), "+D" (regs.x.di),
+          "=m" (regs.x.flags)
+        : "m" (vect)
         : "cc", "memory");
-    outr.x.cflag = outr.x.flags & 1;
-    *outregs = outr;
+    regs.x.cflag = regs.x.flags & 1;
+    *outregs = regs;
 }
 
 void dosmemget(unsigned long addr, size_t len, void *buf)
