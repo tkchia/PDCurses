@@ -29,8 +29,8 @@ ifeq ($(DEBUG),Y)
 	LDFLAGS = -g -march=any
 else
 	CFLAGS  = -Os -Wall $(CHTYPE) -march=any
-	# also include `-Os' and `-march=any' as flags during linking,
-	# to select the size-optimized newlib multilib
+	# also include `-Os' as a flag during linking, to select the size-
+	# -optimized newlib multilib
 	LDFLAGS = -Os -march=any -Wl,-M
 endif
 
