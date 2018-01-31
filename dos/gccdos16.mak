@@ -28,10 +28,10 @@ ifeq ($(DEBUG),Y)
 	CFLAGS  = -g -Wall $(CHTYPE) -DPDCDEBUG -march=any
 	LDFLAGS = -g -march=any
 else
-	CFLAGS  = -Os -Wall $(CHTYPE) -march=any
-	# also include `-Os' as a flag during linking, to select the size-
-	# -optimized newlib multilib
-	LDFLAGS = -Os -march=any -Wl,-M
+	CFLAGS  = -Os -mrtd -Wall $(CHTYPE) -march=any
+	# also include `-Os -mrtd' as flags during linking, to select the
+	# size-optimized `-mrtd' newlib multilib
+	LDFLAGS = -Os -mrtd -march=any -Wl,-M
 endif
 
 ifeq ($(MODEL),t)

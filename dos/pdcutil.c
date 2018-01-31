@@ -243,6 +243,9 @@ void int86(int intno, union REGS *inregs, union REGS *outregs)
           "+d" (regs.x.dx), "+S" (regs.x.si), "+D" (regs.x.di),
           "=m" (regs.x.flags)
         : "m" (vect)
+# ifdef __IA16_FEATURE_ALLOCABLE_DS_REG
+          , "Rds" (_FP_SEGMENT((void __far *)&regs))
+# endif
         : "cc", "memory");
     regs.x.cflag = regs.x.flags & 1;
     *outregs = regs;
@@ -251,30 +254,49 @@ void int86(int intno, union REGS *inregs, union REGS *outregs)
 void dosmemget(unsigned long addr, size_t len, void *buf)
 {
     unsigned cx, si, di;
-    __asm __volatile("pushw %%ds; "
-                     "movw %3, %%ds; "
+# ifdef __IA16_FEATURE_ALLOCABLE_DS_REG
+    __asm __volatile(
                      "shrw $1, %%cx; "
-                     "rep; movsw; "  /* assume DF == 0 */
+                     "cld; "
+                     "rep; movsw; "
+                     "jnc 0f; "
+                     "movsb; "
+                     "0: ; "
+        : "=&c" (cx), "=&S" (si), "=&D" (di)
+        : "0" (len), "Rds" (_FP_SEGMENT(addr)), "1" (_FP_OFFSET(addr)),
+          "e" (_FP_SEGMENT((void __far *)buf)), "2" (buf)
+        : "cc", "memory");
+# else
+    __asm __volatile("pushw %%ds; "
+                     "movw %4, %%ds; "
+                     "shrw $1, %%cx; "
+                     "cld; "
+                     "rep; movsw; "
                      "jnc 0f; "
                      "movsb; "
                      "0: "
                      "popw %%ds"
-        : "=c" (cx), "=S" (si), "=D" (di)
+        : "=&c" (cx), "=&S" (si), "=&D" (di)
         : "0" (len), "rm" (_FP_SEGMENT(addr)), "1" (_FP_OFFSET(addr)),
           "e" (_FP_SEGMENT((void __far *)buf)), "2" (buf)
         : "cc", "memory");
+# endif
 }
 
 void dosmemput(const void *buf, size_t len, unsigned long addr)
 {
     unsigned cx, si, di;
     __asm __volatile("shrw $1, %%cx; "
-                     "rep; movsw; "  /* assume DF == 0 */
+                     "cld; "
+                     "rep; movsw; "
                      "jnc 0f; "
                      "movsb; "
                      "0: "
-        : "=c" (cx), "=S" (si), "=D" (di)
+        : "=&c" (cx), "=&S" (si), "=&D" (di)
         : "0" (len), "1" (buf), "e" (_FP_SEGMENT(addr)), "2" (_FP_OFFSET(addr))
+# ifdef __IA16_FEATURE_ALLOCABLE_DS_REG
+          , "Rds" (_FP_SEGMENT((void __far *)buf))
+# endif
         : "cc", "memory");
 }
 
