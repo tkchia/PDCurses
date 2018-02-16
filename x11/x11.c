@@ -509,12 +509,20 @@ static int _to_utf8(char *outcode, chtype code)
             outcode[1] = (code & 0x003f) | 0x80;
             return 2;
         }
-        else
+        else if( code < 0x10000)
         {
             outcode[0] = ((code & 0xf000) >> 12) | 0xe0;
             outcode[1] = ((code & 0x0fc0) >> 6) | 0x80;
             outcode[2] = (code & 0x003f) | 0x80;
             return 3;
+        }
+        else      /* SMP: Unicode past 64K */
+        {
+            outcode[0] = (code >> 18) | 0xf0;
+            outcode[1] = ((code >> 12) & 0x3f) | 0x80;
+            outcode[2] = ((code >>  6) & 0x3f) | 0x80;
+            outcode[3] = ( code        & 0x3f) | 0x80;
+            return 4;
         }
 }
 
@@ -534,7 +542,7 @@ static int _from_utf8(wchar_t *pwc, const char *s, size_t n)
 
     key = string[0];
 
-    /* Simplistic UTF-8 decoder -- only does the BMP, minimal validation */
+    /* Simplistic UTF-8 decoder -- minimal validation */
 
     if (key & 0x80)
     {
@@ -546,7 +554,7 @@ static int _from_utf8(wchar_t *pwc, const char *s, size_t n)
                 i = 2;
             }
         }
-        else if ((key & 0xe0) == 0xe0)
+        else if ((key & 0xf0) == 0xe0)   /* Unicode from 0x800 to 0xffff */
         {
             if (2 < n)
             {
@@ -555,6 +563,17 @@ static int _from_utf8(wchar_t *pwc, const char *s, size_t n)
                 i = 3;
             }
         }
+        else if ((key & 0xf8) == 0xf0)   /* SMP: Unicode past 64K */
+        {
+            if (3 < n)
+            {
+                key = ((key & 0x07) << 18) | ((string[1] & 0x3f) << 12) |
+                      ((string[2] & 0x3f) << 6) | (string[3] & 0x3f);
+                i = 4;
+            }
+        }
+        else
+            fprintf(stderr, "Invalid UTF8\n");
     }
     else
         i = 1;
@@ -770,6 +789,7 @@ static int _new_packet( const chtype attr, const bool rev, const int len,
                             char *text)
 #endif
 {
+    XRectangle bounds;
     GC gc;
     int xpos, ypos;
     Pixel foreground_rgb, background_rgb;
@@ -809,6 +829,13 @@ static int _new_packet( const chtype attr, const bool rev, const int len,
 
     _make_xy(col, row, &xpos, &ypos);
 
+    bounds.x = xpos;
+    bounds.y = ypos - font_ascent;
+    bounds.width = font_width * len;
+    bounds.height = font_height;
+
+    XSetClipRectangles(XCURSESDISPLAY, gc, 0, 0, &bounds, 1, Unsorted);
+
 #ifdef PDC_WIDE
     XDrawImageString16(
 #else
@@ -842,7 +869,7 @@ static int _new_packet( const chtype attr, const bool rev, const int len,
         if (attr & A_LEFTLINE)      /* LEFT */
             for (k = 0; k < len; k++)
             {
-                int x = xpos + font_width * k - 1;
+                int x = xpos + font_width * k;
                 XDrawLine(XCURSESDISPLAY, XCURSESWIN, gc,
                           x, ypos - font_ascent, x, ypos + font_descent);
             }
@@ -1251,8 +1278,7 @@ static void _refresh_screen(void)
         }
     }
 
-    if (mouse_selection)
-        _selection_off();
+    _selection_off();
 }
 
 static void _handle_expose(Widget w, XtPointer client_data, XEvent *event,
@@ -1320,10 +1346,21 @@ static void XCursesKeyPress(Widget w, XEvent *event, String *params,
     int i, count;
     unsigned long modifier = 0;
     bool key_code = FALSE;
+    static XEvent prev_event;
+    static int repeat_count = 0;
 
     XC_LOG(("XCursesKeyPress() - called\n"));
 
     /* Handle modifier keys first; ignore other KeyReleases */
+    if( event->type == KeyPress && prev_event.type == KeyRelease
+            && event->xkey.time == prev_event.xkey.time
+            && event->xkey.keycode == prev_event.xkey.keycode)
+    {
+        repeat_count++;
+    }
+    else if( event->type == KeyPress)
+        repeat_count = 0;
+    prev_event = *event;
 
     if (event->type == KeyRelease)
     {
@@ -1501,6 +1538,9 @@ static void XCursesKeyPress(Widget w, XEvent *event, String *params,
 
     if (event->xkey.state & Mod1Mask)
         modifier |= PDC_KEY_MODIFIER_ALT;
+
+    if( repeat_count)
+        modifier |= PDC_KEY_MODIFIER_REPEAT;
 
     for (i = 0; key_table[i].keycode; i++)
     {
@@ -1852,12 +1892,15 @@ static void _selection_off(void)
 {
     XC_LOG(("_selection_off() - called\n"));
 
-    _display_screen();
+    if( mouse_selection)
+    {
+        _display_screen();
 
-    selection_start_x = selection_start_y = selection_end_x =
-        selection_end_y = 0;
+        selection_start_x = selection_start_y = selection_end_x =
+            selection_end_y = 0;
 
-    mouse_selection = FALSE;
+        mouse_selection = FALSE;
+    }
 }
 
 static void _selection_on(int x, int y)
