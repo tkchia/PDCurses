@@ -229,28 +229,6 @@ void PDC_dpmi_int(int vector, pdc_dpmi_regs *rmregs)
 
 #elif defined(GCC_IA16)
 
-void int86(int intno, union REGS *inregs, union REGS *outregs)
-{
-    unsigned long vect = getdosmemdword((unsigned)4 * (unsigned char)intno);
-    union REGS regs = *inregs;
-    __asm __volatile("pushw %%bp; "
-                     "pushfw; "
-                     "lcallw *%7; "
-                     "popw %%bp; "
-                     "pushfw; "
-                     "popw %6"
-        : "+a" (regs.x.ax), "+b" (regs.x.bx), "+c" (regs.x.cx),
-          "+d" (regs.x.dx), "+S" (regs.x.si), "+D" (regs.x.di),
-          "=m" (regs.x.flags)
-        : "m" (vect)
-# ifdef __IA16_FEATURE_ALLOCABLE_DS_REG
-          , "Rds" (_FP_SEGMENT((void __far *)&regs))
-# endif
-        : "cc", "memory");
-    regs.x.cflag = regs.x.flags & 1;
-    *outregs = regs;
-}
-
 void dosmemget(unsigned long addr, size_t len, void *buf)
 {
     unsigned cx, si, di;

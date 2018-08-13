@@ -156,18 +156,7 @@ typedef union
 void PDC_dpmi_int(int, pdc_dpmi_regs *);
 
 #elif defined GCC_IA16
-
-/* For now, define a `union REGS' type and an int86(...) routine compatible
-   with those in Borland's Turbo C 2.01, except that int86(...) supposedly
-   returns an undocumented `int' in Turbo C and I leave that out */
-union REGS
-{
-    struct WORDREGS { unsigned ax, bx, cx, dx, si, di, cflag, flags; } x;
-    struct BYTEREGS { unsigned char al, ah, bl, bh, cl, ch, dl, dh; } h;
-};
-
-void int86(int, union REGS *, union REGS *);
-
+# include <i86.h>
 #endif
 
 #ifdef __DJGPP__

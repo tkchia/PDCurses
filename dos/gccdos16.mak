@@ -28,10 +28,11 @@ ifeq ($(DEBUG),Y)
 	CFLAGS  = -g -Wall $(CHTYPE) -DPDCDEBUG -march=any
 	LDFLAGS = -g -march=any
 else
-	CFLAGS  = -Os -mrtd -Wall $(CHTYPE) -march=any
-	# also include `-Os -mrtd' as flags during linking, to select the
-	# size-optimized `-mrtd' newlib multilib
-	LDFLAGS = -Os -mrtd -march=any -Wl,-M
+	CFLAGS  = -Os -mregparmcall -Wall $(CHTYPE) -march=any
+	# also include `-mregparmcall' as a flag during linking, to select
+	# `-mregparmcall' multilibs
+	LDFLAGS = -Os -mregparmcall -march=any -Wl,-M
+	LDLIBS += -li86
 endif
 
 ifeq ($(MODEL),t)
@@ -83,10 +84,10 @@ $(PDCOBJS) : %.o: $(osdir)/%.c
 
 firework.exe newdemo.exe rain.exe testcurs.exe worm.exe xmas.exe \
 ptest.exe: %.exe: $(demodir)/%.c
-	$(CC) $(CFLAGS) $(LDFLAGS) -o$@ $< $(LIBCURSES)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o$@ $< $(LIBCURSES) $(LDLIBS)
 
 tuidemo.exe: tuidemo.o tui.o
-	$(LINK) $(LDFLAGS) -o$@ tuidemo.o tui.o $(LIBCURSES)
+	$(LINK) $(LDFLAGS) -o$@ tuidemo.o tui.o $(LIBCURSES) $(LDLIBS)
 
 tui.o: $(demodir)/tui.c $(demodir)/tui.h $(PDCURSES_CURSES_H)
 	$(CC) -c $(CFLAGS) -I$(demodir) -o$@ $<
