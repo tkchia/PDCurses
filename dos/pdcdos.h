@@ -164,8 +164,8 @@ void PDC_dpmi_int(int, pdc_dpmi_regs *);
 # define PDCREGS __dpmi_regs
 # define PDCINT(vector, regs) __dpmi_int(vector, &regs)
 #else
-# ifdef __WATCOMC__
-#  ifdef __386__
+# if defined __WATCOMC__ || defined GCC_IA16
+#  if defined __WATCOMC__ && defined __386__
 #   define PDCREGS pdc_dpmi_regs
 #   define PDCINT(vector, regs) PDC_dpmi_int(vector, &regs)
 #  else
